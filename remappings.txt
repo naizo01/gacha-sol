@@ -1,0 +1,6 @@
+
+forge-std/=lib/forge-std/src/
+scal-std/=lib/scal-std/src/
+@openzeppelin/=lib/openzeppelin-contracts/
+test/=test/
+src/=src/
