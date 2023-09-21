@@ -8,7 +8,7 @@ interface SCachaTicketNFT {
     }
 
     struct Vars {
-        Person owner; // 複数のアカウントを格納するための配列
+        Person owner; // オーナーアカウント
         Person[] persons; // 複数のアカウントを格納するための配列
     }
 }

@@ -72,7 +72,6 @@ contract GachaTests is Test, GachaTestSetup {
           assertTrue(gacha.hasTicket(testVars.persons[i].addr));
           assertEq(gacha.balanceOf(testVars.persons[i].addr), 1);
           testVars.persons[i].balance = eventToken.balanceOf(testVars.persons[i].addr);
-          assertGt(testVars.persons[i].balance, 0);
           assertTrue(testVars.persons[i].balance <= 50 && testVars.persons[i].balance >= 1);
       }
     }
