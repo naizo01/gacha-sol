@@ -69,7 +69,7 @@ contract GachaTests is Test, GachaTestSetup {
           vm.prank(testVars.persons[i].addr);
           gacha.buyTicketAndPlayGacha{value: 2 ether}();
 
-          assertTrue(gacha.hasTicket(testVars.persons[i].addr));
+          assertTrue(gacha.hasPurchasedBefore(testVars.persons[i].addr));
           assertEq(gacha.balanceOf(testVars.persons[i].addr), 1);
           testVars.persons[i].balance = eventToken.balanceOf(testVars.persons[i].addr);
           assertTrue(testVars.persons[i].balance <= 50 && testVars.persons[i].balance >= 1);

@@ -16,7 +16,7 @@ contract GachaTicketNFT is ERC721, Ownable {
 
     Counters.Counter private _tokenIds;
     EventToken public eventToken;
-    mapping(address => bool) public hasTicket;
+    mapping(address => bool) public hasPurchasedBefore;
 
     /**
      * @dev Constructor that sets the name and symbol for the NFT.
@@ -38,7 +38,9 @@ contract GachaTicketNFT is ERC721, Ownable {
      */
     function buyTicketAndPlayGacha() external payable {
         require(msg.value == 2 ether, "Must send 2 ether");
-        require(!hasTicket[msg.sender], "Already purchased tickets");
+        require(!hasPurchasedBefore[msg.sender], "Already purchased tickets");
+
+        hasPurchasedBefore[msg.sender] = true;
 
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
@@ -47,7 +49,5 @@ contract GachaTicketNFT is ERC721, Ownable {
         uint256 randomSeed = uint256(keccak256(abi.encodePacked(msg.sender, block.number, newTokenId)));
         uint256 randomTokenAmount = (randomSeed % 50) + 1;
         eventToken.mint(msg.sender, randomTokenAmount);
-
-        hasTicket[msg.sender] = true;
     }
 }
