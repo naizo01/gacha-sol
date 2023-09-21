@@ -21,8 +21,10 @@ P->>F: 2 etherを支払ってイベントに入場
 F->>EOA: TX実行
 P->>EOA: TX承認
 EOA->>G: 2 ether支払いとガチャガチャ実行
-alt 既にチケットを購入した
+alt 過去にチケットを購入したことがある
   G->>EOA: Revert "Already purchased tickets"
+else 送金金額が2 etherではない
+  G->>EOA: Revert "Must send 2 ether"
 else チケット購入できる
   G->>EOA: NFTを実行者にMintする
   Note right of G: ブロックナンバーを利用して1-50のランダム値を生成
