@@ -2,5 +2,6 @@ ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 scal-std/=lib/scal-std/src/
 @openzeppelin/=lib/openzeppelin-contracts/
+@chainlink/=lib/chainlink/
 test/=test/
 src/=src/
