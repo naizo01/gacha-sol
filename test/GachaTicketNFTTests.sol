@@ -59,14 +59,14 @@ contract GachaTests is Test, GachaTestSetup {
     }
 
     // Test to ensure that only the contract owner can set the EventToken address.
-    function ensureOnlyOwnerCanSetEventToken() public {
+    function test_ensureOnlyOwnerCanSetEventToken() public {
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Ownable: caller is not the owner");
         gacha.setEventToken(address(eventToken));
     }
 
     // Test to validate that users can purchase tickets and receive the corresponding tokens.
-    function validateTicketPurchaseAndTokenAssignment() public {
+    function test_validateTicketPurchaseAndTokenAssignment() public {
         for (uint i = 0; i < testVars.persons.length; i++) {
             simulateUserTicketPurchase(i);
         }
@@ -103,15 +103,21 @@ contract GachaTests is Test, GachaTestSetup {
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.
-    function validateUserCannotMintWithoutRandomNumber() public {
-        simulateUserTicketPurchase(0);
+    function test_validateUserCannotMintWithoutRandomNumber() public {
+        vm.prank(testVars.persons[0].addr);
+        vm.mockCall(
+            address(vrf),
+            abi.encodeWithSelector(vrf.requestRandomWords.selector),
+            abi.encode(1)
+        );
+        gacha.buyTicketAndPlayGacha{value: 2 ether}();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Random numbers are not generated");
         gacha.mintEventTokens();
     }
 
     // Test to validate that an invalid random number request is rejected.
-    function validateInvalidRandomNumberRequest() public {
+    function test_validateInvalidRandomNumberRequest() public {
         uint256 randomWord = 10;
         uint256[] memory randomWords = new uint256[](1);
         randomWords[0] = randomWord;
@@ -121,23 +127,23 @@ contract GachaTests is Test, GachaTestSetup {
     }
 
     // Test to ensure that users cannot purchase multiple tickets.
-    function validateMultipleTicketPurchaseRestriction() public {
-        validateTicketPurchaseAndTokenAssignment();
+    function test_validateMultipleTicketPurchaseRestriction() public {
+        test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Already purchased tickets");
         gacha.buyTicketAndPlayGacha{value: 2 ether}();
     }
 
     // Test to ensure that users send the correct ether amount when purchasing a ticket.
-    function validateEtherAmountForTicketPurchase() public {
+    function test_validateEtherAmountForTicketPurchase() public {
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Must send 2 ether");
         gacha.buyTicketAndPlayGacha{value: 1 ether}();
     }
 
     // Test to ensure that only the contract owner can burn tokens.
-    function ensureOnlyOwnerCanBurnTokens() public {
-        validateTicketPurchaseAndTokenAssignment();
+    function test_ensureOnlyOwnerCanBurnTokens() public {
+        test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         eventToken.transfer(testVars.owner.addr, testVars.persons[0].balance);
         assertEq(eventToken.balanceOf(testVars.owner.addr), testVars.persons[0].balance);
@@ -146,16 +152,16 @@ contract GachaTests is Test, GachaTestSetup {
     }
 
     // Test to ensure that non-owners cannot burn tokens.
-    function ensureNonOwnersCannotBurnTokens() public {
-        validateTicketPurchaseAndTokenAssignment();
+    function test_ensureNonOwnersCannotBurnTokens() public {
+        test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Ownable: caller is not the owner");
         eventToken.burn(testVars.persons[0].balance);
     }
 
     // Test to ensure that only the Gacha contract can mint tokens.
-    function ensureOnlyGachaCanMintTokens() public {
-        validateTicketPurchaseAndTokenAssignment();
+    function test_ensureOnlyGachaCanMintTokens() public {
+        test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Only minter contract can mint");
         eventToken.mint(testVars.persons[1].addr, 1);
