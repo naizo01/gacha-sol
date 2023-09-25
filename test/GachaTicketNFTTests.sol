@@ -17,11 +17,11 @@ abstract contract GachaTestSetup is Test, SGachaTicketNFT {
     VRFCoordinatorV2Mock vrf;
 
     function initializeChainlink() internal {
-        testVars.owner.addr = makeAddr("Owner");
         vrf = new VRFCoordinatorV2Mock(100000000000000000, 1000000000);
     }
 
     function initializeContracts() internal {
+        testVars.owner.addr = makeAddr("Owner");
         vm.prank(testVars.owner.addr);
         eventToken = new EventToken();
         vm.prank(testVars.owner.addr);
@@ -48,7 +48,9 @@ abstract contract GachaTestSetup is Test, SGachaTicketNFT {
     }
 }
 
-contract GachaTests is Test, GachaTestSetup { 
+contract GachaTests is Test, GachaTestSetup {
+
+    uint256 randomWord = 10;
 
     // Initial setup for the tests, including deploying necessary contracts and preparing test users.
     function setUp() public {
@@ -56,20 +58,6 @@ contract GachaTests is Test, GachaTestSetup {
         initializeContracts();
         connectContracts();
         prepareTestUsers();
-    }
-
-    // Test to ensure that only the contract owner can set the EventToken address.
-    function test_ensureOnlyOwnerCanSetEventToken() public {
-        vm.prank(testVars.persons[0].addr);
-        vm.expectRevert("Ownable: caller is not the owner");
-        gacha.setEventToken(address(eventToken));
-    }
-
-    // Test to validate that users can purchase tickets and receive the corresponding tokens.
-    function test_validateTicketPurchaseAndTokenAssignment() public {
-        for (uint i = 0; i < testVars.persons.length; i++) {
-            simulateUserTicketPurchase(i);
-        }
     }
 
     // Internal function to simulate a user purchasing a ticket.
@@ -82,24 +70,51 @@ contract GachaTests is Test, GachaTestSetup {
         );
         gacha.buyTicketAndPlayGacha{value: 2 ether}();
 
+        assertTrue(gacha.addressToRequestId(testVars.persons[userIndex].addr) != 0);
+        assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
+
+        simulateRandomNumberGenerationForUser(userIndex);
         assertUserTicketPurchase(userIndex);
+    }
+
+    // Simulates the generation of a random number for a given user.
+    function simulateRandomNumberGenerationForUser(uint userIndex) internal {
+        uint256[] memory randomNumbers = new uint256[](1);
+        randomNumbers[0] = randomWord;
+        vm.prank(address(vrf));
+        gacha.rawFulfillRandomWords(userIndex + 1, randomNumbers);
     }
 
     // Internal function to assert the results of a user's ticket purchase.
     function assertUserTicketPurchase(uint userIndex) internal {
-        assertTrue(gacha.addressToRequestId(testVars.persons[userIndex].addr) != 0);
-        assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
-
-        uint256 randomWord = 10;
-        uint256[] memory randomWords = new uint256[](1);
-        randomWords[0] = randomWord;
-        vm.prank(address(vrf));
-        gacha.rawFulfillRandomWords(userIndex + 1, randomWords);
-
         vm.prank(testVars.persons[userIndex].addr);
         gacha.mintEventTokens();
         testVars.persons[userIndex].balance = eventToken.balanceOf(testVars.persons[userIndex].addr);
-        assertTrue(eventToken.balanceOf(testVars.persons[userIndex].addr) == randomWord % 50 + 1);
+        assertTrue(testVars.persons[userIndex].balance == randomWord % 50 + 1);
+    }
+
+    // Test to validate that users can purchase tickets and receive the corresponding tokens.
+    function test_validateTicketPurchaseAndTokenAssignment() public {
+        for (uint i = 0; i < testVars.persons.length; i++) {
+            simulateUserTicketPurchase(i);
+        }
+    }
+
+    // Test to ensure that only the contract owner can burn tokens.
+    function test_ensureOnlyOwnerCanBurnTokens() public {
+        test_validateTicketPurchaseAndTokenAssignment();
+        vm.prank(testVars.persons[0].addr);
+        eventToken.transfer(testVars.owner.addr, testVars.persons[0].balance);
+        assertEq(eventToken.balanceOf(testVars.owner.addr), testVars.persons[0].balance);
+        vm.prank(testVars.owner.addr);
+        eventToken.burn(testVars.persons[0].balance);
+    }
+
+    // Test to ensure that only the contract owner can set the EventToken address.
+    function test_ensureOnlyOwnerCanSetEventToken() public {
+        vm.prank(testVars.persons[0].addr);
+        vm.expectRevert("Ownable: caller is not the owner");
+        gacha.setEventToken(address(eventToken));
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.
@@ -118,7 +133,6 @@ contract GachaTests is Test, GachaTestSetup {
 
     // Test to validate that an invalid random number request is rejected.
     function test_validateInvalidRandomNumberRequest() public {
-        uint256 randomWord = 10;
         uint256[] memory randomWords = new uint256[](1);
         randomWords[0] = randomWord;
         vm.prank(address(vrf));
@@ -139,16 +153,6 @@ contract GachaTests is Test, GachaTestSetup {
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Must send 2 ether");
         gacha.buyTicketAndPlayGacha{value: 1 ether}();
-    }
-
-    // Test to ensure that only the contract owner can burn tokens.
-    function test_ensureOnlyOwnerCanBurnTokens() public {
-        test_validateTicketPurchaseAndTokenAssignment();
-        vm.prank(testVars.persons[0].addr);
-        eventToken.transfer(testVars.owner.addr, testVars.persons[0].balance);
-        assertEq(eventToken.balanceOf(testVars.owner.addr), testVars.persons[0].balance);
-        vm.prank(testVars.owner.addr);
-        eventToken.burn(testVars.persons[0].balance);
     }
 
     // Test to ensure that non-owners cannot burn tokens.
