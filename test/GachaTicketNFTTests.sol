@@ -70,7 +70,7 @@ contract GachaTests is Test, GachaTestSetup {
         );
         gacha.buyTicketAndPlayGacha{value: 2 ether}();
 
-        assertTrue(gacha.addressToRequestId(testVars.persons[userIndex].addr) != 0);
+        assertEq(gacha.addressToRequestId(testVars.persons[userIndex].addr), userIndex + 1);
         assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
 
         simulateRandomNumberGenerationForUser(userIndex);
@@ -115,6 +115,13 @@ contract GachaTests is Test, GachaTestSetup {
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Ownable: caller is not the owner");
         gacha.setEventToken(address(eventToken));
+    }
+
+    // Tests that only the contract owner can set the minter contract address for the EventToken.
+    function test_onlyOwnerCanSetMinterContractAddress() public {
+        vm.prank(testVars.persons[0].addr);
+        vm.expectRevert("Ownable: caller is not the owner");
+        eventToken.setMinterContractAddress(address(eventToken));
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.
