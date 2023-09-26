@@ -62,7 +62,7 @@ contract GachaTicketNFT is ERC721, Ownable, VRFConsumerBaseV2 {
         require(msg.value == 2 ether, "Must send 2 ether");
         require(addressToRequestId[msg.sender] == 0, "Already purchased tickets");
 
-        uint256 requestId = requestRandomWords();
+        requestRandomWords();
         mintTicket();
     }
 
