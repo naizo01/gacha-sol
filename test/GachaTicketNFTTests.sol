@@ -68,7 +68,7 @@ contract GachaTests is Test, GachaTestSetup {
             abi.encodeWithSelector(vrf.requestRandomWords.selector),
             abi.encode(userIndex + 1)
         );
-        gacha.buyTicketAndPlayGacha{value: 2 ether}();
+        gacha.buyTicketAndPlayGacha{value: 0.1 ether}();
 
         assertEq(gacha.addressToRequestId(testVars.persons[userIndex].addr), userIndex + 1);
         assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
@@ -132,7 +132,7 @@ contract GachaTests is Test, GachaTestSetup {
             abi.encodeWithSelector(vrf.requestRandomWords.selector),
             abi.encode(1)
         );
-        gacha.buyTicketAndPlayGacha{value: 2 ether}();
+        gacha.buyTicketAndPlayGacha{value: 0.1 ether}();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Random numbers are not generated");
         gacha.mintEventTokens();
@@ -152,14 +152,14 @@ contract GachaTests is Test, GachaTestSetup {
         test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Already purchased tickets");
-        gacha.buyTicketAndPlayGacha{value: 2 ether}();
+        gacha.buyTicketAndPlayGacha{value: 0.1 ether}();
     }
 
     // Test to ensure that users send the correct ether amount when purchasing a ticket.
     function test_validateEtherAmountForTicketPurchase() public {
         vm.prank(testVars.persons[0].addr);
-        vm.expectRevert("Must send 2 ether");
-        gacha.buyTicketAndPlayGacha{value: 1 ether}();
+        vm.expectRevert("Must send 0.1 ether");
+        gacha.buyTicketAndPlayGacha{value: 0.01 ether}();
     }
 
     // Test to ensure that non-owners cannot burn tokens.

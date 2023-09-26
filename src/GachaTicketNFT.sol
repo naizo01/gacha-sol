@@ -59,7 +59,7 @@ contract GachaTicketNFT is ERC721, Ownable, VRFConsumerBaseV2 {
      * @dev Allows users to buy a ticket and play the Gacha game.
      */
     function buyTicketAndPlayGacha() external payable {
-        require(msg.value == 2 ether, "Must send 2 ether");
+        require(msg.value == 0.1 ether, "Must send 0.1 ether");
         require(addressToRequestId[msg.sender] == 0, "Already purchased tickets");
 
         requestRandomWords();
