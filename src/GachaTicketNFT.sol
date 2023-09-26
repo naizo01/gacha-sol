@@ -13,7 +13,6 @@ contract GachaTicketNFT is ERC721, Ownable, VRFConsumerBaseV2 {
 
     // State variables
     Counters.Counter private _tokenIds;
-    Counters.Counter private _requestId;
     EventToken public eventToken;
     VRFCoordinatorV2Interface COORDINATOR;
     bytes32 keyHash = 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
@@ -65,8 +64,6 @@ contract GachaTicketNFT is ERC721, Ownable, VRFConsumerBaseV2 {
 
         uint256 requestId = requestRandomWords();
         mintTicket();
-
-        emit RequestSent(requestId, msg.sender);
     }
 
     /**
@@ -92,12 +89,10 @@ contract GachaTicketNFT is ERC721, Ownable, VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
-        requestStatuses[requestId] = RequestStatus({
-            randomWords: new uint256[](0),
-            fulfilled: false,
-            userAddress: msg.sender
-        });
+        requestStatuses[requestId].userAddress = msg.sender;
         addressToRequestId[msg.sender] = requestId;
+
+        emit RequestSent(requestId, msg.sender);
     }
 
     /**
