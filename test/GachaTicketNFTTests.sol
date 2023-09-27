@@ -37,6 +37,7 @@ abstract contract GachaTestSetup is Test, SGachaTicketNFT {
     }
 
     function prepareTestUsers() internal virtual{
+        testVars.owner.addr = makeAddr("Owner");
         string[2] memory userNames = ["A", "B"];
         for (uint i = 0; i < userNames.length; i++) {
             SGachaTicketNFT.Person memory newUser;
@@ -53,12 +54,14 @@ contract GachaTests is Test, GachaTestSetup {
 
     // Initial setup for the tests, including deploying necessary contracts and preparing test users.
     function setUp() public virtual {
-        testVars.owner.addr = makeAddr("Owner");
-        vm.startPrank(testVars.owner.addr);
         prepareTestUsers();
+        
+        vm.startPrank(testVars.owner.addr);
+
         initializeChainlink();
         initializeContracts();
         connectContracts();
+        
         vm.stopPrank();
     }
 
