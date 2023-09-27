@@ -14,6 +14,7 @@ contract ForkTest is Test, SGachaTicketNFT {
     EventToken eventToken;
     GachaTicketNFT gacha;
     VRFCoordinatorV2Mock vrf;
+    address coordinatorAddress;
 
     function initializeRpc() internal {
         string memory rpcUrl = vm.envString("SPEPOLIA_RPC_URL");
@@ -24,6 +25,7 @@ contract ForkTest is Test, SGachaTicketNFT {
         address _eventToken = vm.envAddress("EVENT_TOKEN_ADDRESS");
         address _gacha = vm.envAddress("GACHA_ADDRESS");
         address _vrf = vm.envAddress("VRF_ADDRESS");
+        coordinatorAddress = vm.envAddress("VRF_COORDINATOR_ADDRESS");
         eventToken = EventToken(_eventToken);
         gacha = GachaTicketNFT(_gacha);
         vrf = VRFCoordinatorV2Mock(_vrf);
@@ -66,7 +68,7 @@ contract GachaForkTests is Test, ForkTest {
     function simulateRandomNumberGenerationForUser(uint userIndex) internal {
         uint256[] memory randomNumbers = new uint256[](1);
         randomNumbers[0] = randomWord;
-        vm.prank(address(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625));
+        vm.prank(coordinatorAddress);
         gacha.rawFulfillRandomWords(testVars.persons[userIndex].requestId, randomNumbers);
     }
 
@@ -122,7 +124,7 @@ contract GachaForkTests is Test, ForkTest {
     function test_validateInvalidRandomNumberRequest() public {
         uint256[] memory randomWords = new uint256[](1);
         randomWords[0] = randomWord;
-        vm.prank(address(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625));
+        vm.prank(coordinatorAddress);
         vm.expectRevert("request not found");
         gacha.rawFulfillRandomWords(1, randomWords);
     }
