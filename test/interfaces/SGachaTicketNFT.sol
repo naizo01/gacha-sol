@@ -5,6 +5,7 @@ interface SGachaTicketNFT {
     struct Person {
         address addr;
         uint256 balance;
+        uint256 requestId;
     }
 
     struct Vars {
