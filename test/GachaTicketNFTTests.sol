@@ -13,31 +13,30 @@ abstract contract GachaTestSetup is Test, SGachaTicketNFT {
     EventToken eventToken;
     Vars testVars;
     uint64 subId;
+    address coordinatorAddress;
+    address vrfAddress;
 
     VRFCoordinatorV2Mock vrf;
 
     function initializeChainlink() internal {
         vrf = new VRFCoordinatorV2Mock(100000000000000000, 1000000000);
+        coordinatorAddress = address(vrf);
+        vrfAddress = address(vrf);
     }
 
-    function initializeContracts() internal {
-        testVars.owner.addr = makeAddr("Owner");
-        vm.prank(testVars.owner.addr);
+    function initializeContracts() internal virtual{
         eventToken = new EventToken();
-        vm.prank(testVars.owner.addr);
-        gacha = new GachaTicketNFT(subId, address(vrf));
+        gacha = new GachaTicketNFT(subId, vrfAddress);
     }
 
     function connectContracts() internal {
-        vm.prank(testVars.owner.addr);
         eventToken.setMinterContractAddress(address(gacha));
-        vm.prank(testVars.owner.addr);
         gacha.setEventToken(address(eventToken));
         assertEq(eventToken.minterContractAddress(), address(gacha));
         assertEq(address(gacha.eventToken()), address(eventToken));
     }
 
-    function prepareTestUsers() internal {
+    function prepareTestUsers() internal virtual{
         string[2] memory userNames = ["A", "B"];
         for (uint i = 0; i < userNames.length; i++) {
             SGachaTicketNFT.Person memory newUser;
@@ -53,15 +52,18 @@ contract GachaTests is Test, GachaTestSetup {
     uint256 randomWord = 10;
 
     // Initial setup for the tests, including deploying necessary contracts and preparing test users.
-    function setUp() public {
+    function setUp() public virtual {
+        testVars.owner.addr = makeAddr("Owner");
+        vm.startPrank(testVars.owner.addr);
+        prepareTestUsers();
         initializeChainlink();
         initializeContracts();
         connectContracts();
-        prepareTestUsers();
+        vm.stopPrank();
     }
 
     // Internal function to simulate a user purchasing a ticket.
-    function simulateUserTicketPurchase(uint userIndex) internal {
+    function simulateUserTicketPurchase(uint userIndex) internal virtual {
         vm.prank(testVars.persons[userIndex].addr);
         vm.mockCall(
             address(vrf),
@@ -70,6 +72,7 @@ contract GachaTests is Test, GachaTestSetup {
         );
         gacha.buyTicketAndPlayGacha{value: 0.1 ether}();
 
+        testVars.persons[userIndex].requestId = gacha.addressToRequestId(testVars.persons[userIndex].addr);
         assertEq(gacha.addressToRequestId(testVars.persons[userIndex].addr), userIndex + 1);
         assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
 
@@ -81,8 +84,8 @@ contract GachaTests is Test, GachaTestSetup {
     function simulateRandomNumberGenerationForUser(uint userIndex) internal {
         uint256[] memory randomNumbers = new uint256[](1);
         randomNumbers[0] = randomWord;
-        vm.prank(address(vrf));
-        gacha.rawFulfillRandomWords(userIndex + 1, randomNumbers);
+        vm.prank(coordinatorAddress);
+        gacha.rawFulfillRandomWords(testVars.persons[userIndex].requestId, randomNumbers);
     }
 
     // Internal function to assert the results of a user's ticket purchase.
@@ -125,7 +128,7 @@ contract GachaTests is Test, GachaTestSetup {
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.
-    function test_validateUserCannotMintWithoutRandomNumber() public {
+    function test_validateUserCannotMintWithoutRandomNumber() public virtual {
         vm.prank(testVars.persons[0].addr);
         vm.mockCall(
             address(vrf),
@@ -142,7 +145,7 @@ contract GachaTests is Test, GachaTestSetup {
     function test_validateInvalidRandomNumberRequest() public {
         uint256[] memory randomWords = new uint256[](1);
         randomWords[0] = randomWord;
-        vm.prank(address(vrf));
+        vm.prank(coordinatorAddress);
         vm.expectRevert("request not found");
         gacha.rawFulfillRandomWords(1, randomWords);
     }
@@ -175,6 +178,6 @@ contract GachaTests is Test, GachaTestSetup {
         test_validateTicketPurchaseAndTokenAssignment();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Only minter contract can mint");
-        eventToken.mint(testVars.persons[1].addr, 1);
+        eventToken.mint(testVars.owner.addr, 1);
     }
 }
