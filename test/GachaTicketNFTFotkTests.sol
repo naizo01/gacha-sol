@@ -112,15 +112,19 @@ contract GachaForkTests is Test, ForkTest {
     // Test to ensure that users cannot mint event tokens without a generated random number.
     function test_validateUserCannotMintWithoutRandomNumber() public {
         vm.prank(testVars.persons[0].addr);
-        vm.mockCall(
-            address(vrf),
-            abi.encodeWithSelector(vrf.requestRandomWords.selector),
-            abi.encode(1)
-        );
         gacha.buyTicketAndPlayGacha{value: 0.1 ether}();
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Random numbers are not generated");
         gacha.mintEventTokens();
+    }
+
+    // Test to validate that an invalid random number request is rejected.
+    function test_validateInvalidRandomNumberRequest() public {
+        uint256[] memory randomWords = new uint256[](1);
+        randomWords[0] = randomWord;
+        vm.prank(address(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625));
+        vm.expectRevert("request not found");
+        gacha.rawFulfillRandomWords(1, randomWords);
     }
 
     // Test to ensure that users cannot purchase multiple tickets.
