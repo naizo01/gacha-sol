@@ -55,9 +55,6 @@ contract GachaTests is GachaTestSetup {
         testVars.persons[userIndex].requestId = gacha.addressToRequestId(testVars.persons[userIndex].addr);
         assertEq(gacha.addressToRequestId(testVars.persons[userIndex].addr), userIndex + 1);
         assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
-
-        simulateRandomNumberGenerationForUser(userIndex);
-        assertUserTicketPurchase(userIndex);
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.

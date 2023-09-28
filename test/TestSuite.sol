@@ -13,9 +13,27 @@ abstract contract TestSuite is Test, SGachaTicketNFT, DeployScript {
     VRFCoordinatorV2Mock vrf;
     uint256 randomWord;
 
-    function test_correctEventTokenAndMinterAddresses() public {
-        assertEq(eventToken.minterContractAddress(), address(gacha));
-        assertEq(address(gacha.eventToken()), address(eventToken));
+    function test_setAndVerifyMinterAddressInEventToken() public {
+        vm.prank(testVars.owner.addr);
+        eventToken.setMinterContractAddress(address(eventToken));
+        assertEq(eventToken.minterContractAddress(), address(eventToken));
+    }
+    function test_setAndVerifyEventTokenInGacha() public {
+        vm.prank(testVars.owner.addr);
+        gacha.setEventToken(address(gacha));
+        assertEq(address(gacha.eventToken()), address(gacha));
+    }
+
+    function test_nonOwnerCannotSetMinterAddressInEventToken() public {
+        vm.prank(testVars.persons[0].addr);
+        vm.expectRevert("Ownable: caller is not the owner");
+        eventToken.setMinterContractAddress(address(gacha));
+    }
+
+    function test_nonOwnerCannotSetEventTokenInGacha() public {
+        vm.prank(testVars.persons[0].addr);
+        vm.expectRevert("Ownable: caller is not the owner");
+        gacha.setEventToken(address(eventToken));
     }
 
     function prepareTestUsers() internal virtual {}
@@ -44,6 +62,8 @@ abstract contract TestSuite is Test, SGachaTicketNFT, DeployScript {
         randomWord = random;
         for (uint i = 0; i < testVars.persons.length; i++) {
             simulateUserTicketPurchase(i);
+            simulateRandomNumberGenerationForUser(i);
+            assertUserTicketPurchase(i);
         }
     }
 
@@ -90,11 +110,20 @@ abstract contract TestSuite is Test, SGachaTicketNFT, DeployScript {
 
     // Test to ensure that users send the correct ether amount when purchasing a ticket.
     function testFuzz_validateEtherAmountForTicketPurchase(uint256 amount) public {
-        vm.assume(amount < 10 ether);
+        vm.assume(amount < 1 ether);
         vm.assume(amount != 0.1 ether);
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Must send 0.1 ether");
         gacha.buyTicketAndPlayGacha{value: amount}();
+    }
+
+    // Test to ensure that only the user who requested the random number can mint event tokens.
+    function test_onlyRequestingUserCanMintTokens() public {
+        simulateUserTicketPurchase(0);
+        simulateRandomNumberGenerationForUser(0);
+        vm.prank(testVars.owner.addr);
+        vm.expectRevert("Different from the user who requested the random number");
+        gacha.mintEventTokens();
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.

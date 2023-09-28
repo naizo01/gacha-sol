@@ -50,9 +50,6 @@ contract GachaForkTests is GachaForkTestSetup {
 
         testVars.persons[userIndex].requestId = gacha.addressToRequestId(testVars.persons[userIndex].addr);
         assertEq(gacha.balanceOf(testVars.persons[userIndex].addr), 1);
-
-        simulateRandomNumberGenerationForUser(userIndex);
-        assertUserTicketPurchase(userIndex);
     }
 
     // Test to ensure that users cannot mint event tokens without a generated random number.
