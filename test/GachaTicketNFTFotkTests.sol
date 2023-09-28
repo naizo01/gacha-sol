@@ -3,11 +3,11 @@ pragma solidity ^0.8.17;
 
 import "src/GachaTicketNFT.sol";
 import "src/EventToken.sol";
-import { GachaTests } from "./GachaTicketNFTTests.sol";
-import { SGachaTicketNFT } from "test/interfaces/SGachaTicketNFT.sol";
 import "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import { SGachaTicketNFT } from "test/interfaces/SGachaTicketNFT.sol";
+import { TestSuite } from "test/TestSuite.sol";
 
-contract ForkTest is GachaTests {
+contract GachaForkTestSetup is TestSuite {
     uint256 spepoliaFork;
 
     function initializeRpc() internal {
@@ -35,9 +35,9 @@ contract ForkTest is GachaTests {
 
 }
 
-contract GachaForkTests is ForkTest {
+contract GachaForkTests is GachaForkTestSetup {
 
-    function setUp() public override {
+    function setUp() public {
         prepareTestUsers();
         initializeRpc();
         initializeContracts();

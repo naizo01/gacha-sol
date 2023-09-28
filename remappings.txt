@@ -5,3 +5,4 @@ scal-std/=lib/scal-std/src/
 @chainlink/=lib/chainlink/
 test/=test/
 src/=src/
+script/=script/
