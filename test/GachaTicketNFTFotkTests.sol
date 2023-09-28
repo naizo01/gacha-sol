@@ -7,7 +7,7 @@ import "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 import { SGachaTicketNFT } from "test/interfaces/SGachaTicketNFT.sol";
 import { TestSuite } from "test/TestSuite.sol";
 
-contract GachaForkTestSetup is TestSuite {
+abstract contract GachaForkTestSetup is TestSuite {
     uint256 spepoliaFork;
 
     function initializeRpc() internal {

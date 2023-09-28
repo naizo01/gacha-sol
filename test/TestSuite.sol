@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "forge-std/Test.sol";
 import { SGachaTicketNFT } from "test/interfaces/SGachaTicketNFT.sol";
 import "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 import "script/DeployScript.sol";
 
-abstract contract TestSuite is SGachaTicketNFT, DeployScript {
+abstract contract TestSuite is Test, SGachaTicketNFT, DeployScript {
 
     Vars testVars;
     address coordinatorAddress;
     VRFCoordinatorV2Mock vrf;
     uint256 randomWord = 10;
+
+    function test_correctEventTokenAndMinterAddresses() public {
+        assertEq(eventToken.minterContractAddress(), address(gacha));
+        assertEq(address(gacha.eventToken()), address(eventToken));
+    }
 
     function prepareTestUsers() internal virtual {}
 

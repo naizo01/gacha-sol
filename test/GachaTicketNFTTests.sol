@@ -6,7 +6,7 @@ import { SGachaTicketNFT } from "test/interfaces/SGachaTicketNFT.sol";
 import { TestSuite } from "test/TestSuite.sol";
 
 
-contract GachaTestSetup is TestSuite {
+abstract contract GachaTestSetup is TestSuite {
 
     function initializeChainlink() internal {
         vrf = new VRFCoordinatorV2Mock(100000000000000000, 1000000000);

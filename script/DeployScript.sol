@@ -2,11 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
-import "forge-std/Test.sol";
 import "src/GachaTicketNFT.sol";
 import "src/EventToken.sol";
 
-contract DeployScript is Script, Test {
+contract DeployScript is Script {
 
     GachaTicketNFT gacha;
     EventToken eventToken;
@@ -37,8 +36,6 @@ contract DeployScript is Script, Test {
     function connectContracts() internal {
         eventToken.setMinterContractAddress(address(gacha));
         gacha.setEventToken(address(eventToken));
-        assertEq(eventToken.minterContractAddress(), address(gacha));
-        assertEq(address(gacha.eventToken()), address(eventToken));
     }
 }
 
