@@ -110,7 +110,7 @@ abstract contract TestSuite is Test, SGachaTicketNFT, DeployScript {
 
     // Test to ensure that users send the correct ether amount when purchasing a ticket.
     function testFuzz_validateEtherAmountForTicketPurchase(uint256 amount) public {
-        vm.assume(amount < 1 ether);
+        vm.assume(amount < 10 ether);
         vm.assume(amount != 0.1 ether);
         vm.prank(testVars.persons[0].addr);
         vm.expectRevert("Must send 0.1 ether");

@@ -38,8 +38,8 @@ abstract contract GachaForkTestSetup is TestSuite {
 contract GachaForkTests is GachaForkTestSetup {
 
     function setUp() public {
-        prepareTestUsers();
         initializeRpc();
+        prepareTestUsers();
         initializeContracts();
     }
 
